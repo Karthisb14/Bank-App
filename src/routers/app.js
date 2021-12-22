@@ -3,6 +3,7 @@ const bankapp = require('../models/bankmodels')
 const banktransaction = require('../models/transdetail')
 const auth = require('../middleware/auth')
 const bcrypt = require('bcryptjs')
+const { ConnectionPoolClosedEvent } = require('mongodb')
 
 const router = new express.Router()
 
@@ -128,8 +129,8 @@ router.post('/bankapp/amount-transfer', auth, async(req, res) => {
        return res.status(400).send({error: 'Insufficient balance'})
     }
 
-    // 1st user
-    const updatebalance = await bankapp.findOneAndUpdate({loginuser}, {balance: transferamount},{new: true})
+    // // 1st user
+    const updatebalance = await bankapp.findOneAndUpdate({accountnumber: loginuser.accountnumber}, {balance: transferamount},{new: true})
     
     const updateamount2 = await bankapp.findOne({accountnumber: req.body.accountnumber})
     const update2 = updateamount2.balance + req.body.balance
@@ -151,8 +152,8 @@ router.post('/bankapp/amount-transfer', auth, async(req, res) => {
     try{
         // 2nd user
         const amttransfer = await bankapp.findOneAndUpdate({accountnumber: req.body.accountnumber},{balance: update2},{new : true})
-        await amttransfer.save()
         await updatebalance.save()
+        await amttransfer.save()
         await transactiondata.save()
         await transactioncredit.save()
         res.send({sucess: 'transaction Completed Successfully!'})
