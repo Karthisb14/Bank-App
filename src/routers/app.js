@@ -3,7 +3,6 @@ const bankapp = require('../models/bankmodels')
 const banktransaction = require('../models/transdetail')
 const auth = require('../middleware/auth')
 const bcrypt = require('bcryptjs')
-const e = require('express')
 
 const router = new express.Router()
 
@@ -119,6 +118,50 @@ router.patch('/bankapp/withdraw', auth, async(req, res) => {
         res.status(400).send()
     }
 })
+
+router.post('/bankapp/amount-transfer', auth, async(req, res) => {
+
+    const loginuser = req.accountdetails
+    const transferamount = loginuser.balance - req.body.balance
+
+    if(transferamount < 0){
+       return res.status(400).send({error: 'Insufficient balance'})
+    }
+
+    // 1st user
+    const updatebalance = await bankapp.findOneAndUpdate({loginuser}, {balance: transferamount},{new: true})
+    
+    const updateamount2 = await bankapp.findOne({accountnumber: req.body.accountnumber})
+    const update2 = updateamount2.balance + req.body.balance
+
+    const transactiondata  = new banktransaction({
+        accnumber: loginuser.accountnumber,
+        amount: req.body.balance,
+        account_id: loginuser._id,
+        transacation_type: 'debit'
+    })
+
+    const transactioncredit = new banktransaction({
+        accnumber: req.body.accountnumber,
+        amount: req.body.balance,
+        account_id: loginuser._id,
+        transacation_type: 'credit',
+    })
+
+    try{
+        // 2nd user
+        const amttransfer = await bankapp.findOneAndUpdate({accountnumber: req.body.accountnumber},{balance: update2},{new : true})
+        await amttransfer.save()
+        await updatebalance.save()
+        await transactiondata.save()
+        await transactioncredit.save()
+        res.send({sucess: 'transaction Completed Successfully!'})
+    }catch(e){
+        res.status(400).send()
+    }
+
+})
+
 
 router.patch('/bankapp/password',auth, async(req,res) => {
     
