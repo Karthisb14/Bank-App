@@ -113,7 +113,7 @@ router.patch('/bankapp/withdraw', auth, async(req, res) => {
         const withdrawamount = await bankapp.findOneAndUpdate({accountnumber: req.body.accountnumber, PIN: req.body.PIN}, {balance: withdraw}, {new: true})
         await withdrawamount.save()
         await transactionwithdraw.save()
-        res.send(withdrawamount)
+        res.status(200).send(withdrawamount)
         
     }catch(e){
         res.status(400).send()
