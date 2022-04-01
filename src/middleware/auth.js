@@ -5,6 +5,7 @@ const auth = async(req, res, next) => {
     
     try{
         const token = req.header('Authorization').replace('Bearer ', '')
+        console.log(token)
         const decodetoken = jwt.verify(token, 'banktask')
         const accountdetails = await bankapp.findOne({ _id: decodetoken._id, 'tokens.token': token})
 
