@@ -266,7 +266,7 @@ router.post('/bankapp/forgotpassword', async (req, res) => {
             OTP: GenOTP
         })
 
-        sgMail.setApiKey('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')
+        sgMail.setApiKey('sendgridapikey')
         sgMail.send({
             to: req.body.email,
             from: 'karthisb14@gmail.com',
